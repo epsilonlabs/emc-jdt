@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.epsilon.common.dt.launching.dialogs.AbstractModelConfigurationDialog;
+import org.eclipse.epsilon.emc.jdt.JdtModel;
 import org.eclipse.epsilon.emc.jdt.JdtReader;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.swt.SWT;
@@ -26,15 +27,6 @@ public class JdtModelConfigurationDialog extends AbstractModelConfigurationDialo
 	private Button bindingSwitch;
 	private int modelSelected;
 	private boolean bindingFlag;
-	public static final String PROJECTS = "projects selected";
-	public static final String CACHING_STRATEGY = "model selected";
-	public static final String RESOLVE_BINDINGS = "resolve bindings";
-	public static final int VIRTUAL = 0; // virtual storage approach
-	public static final int PHYSICAL = 1; // real storage approach
-	public static final int PHYSICAL_GC = 2; // real storage with garbage
-												// collection
-	public static final int TURNONBINDINGS = 10;
-	public static final int TURNOFFBINDINGS = 20;
 
 	@Override
 	protected String getModelName() {
@@ -66,11 +58,11 @@ public class JdtModelConfigurationDialog extends AbstractModelConfigurationDialo
 		final Composite groupContent = createGroupContainer(parent, "Models:",
 				2);
 		virtualCache = createModelSelectionButton(groupContent,
-				"Virtual caching", VIRTUAL);
+				"Virtual caching", JdtModel.VIRTUAL);
 		realCache = createModelSelectionButton(groupContent,
-				"Physical caching", PHYSICAL);
+				"Physical caching", JdtModel.PHYSICAL);
 		realCacheGC = createModelSelectionButton(groupContent,
-				"Physical caching with GC (not implemented yet)", PHYSICAL);
+				"Physical caching with GC (not implemented yet)", JdtModel.PHYSICAL);
 		realCacheGC.setEnabled(false);// not implemented yet
 		groupContent.layout();
 	}
@@ -183,39 +175,39 @@ public class JdtModelConfigurationDialog extends AbstractModelConfigurationDialo
 		if (properties == null)
 			return;
 		// get selected projects'names
-		String[] selection = properties.getProperty(PROJECTS).split(",");
+		String[] selection = properties.getProperty(JdtModel.PROPERTY_PROJECTS).split(",");
 		list.setSelection(selection);
 
 		// model selection
-		String str = properties.getProperty(CACHING_STRATEGY);
+		String str = properties.getProperty(JdtModel.PROPERTY_CACHING_STRATEGY);
 		if (str != "") {
 			int temp = Integer.parseInt(str);
 
 			switch (temp) {
-			case VIRTUAL:
-				modelSelected = VIRTUAL;
+			case JdtModel.VIRTUAL:
+				modelSelected = JdtModel.VIRTUAL;
 				virtualCache.setSelection(true);
 				break;
-			case PHYSICAL:
-				modelSelected = PHYSICAL;
+			case JdtModel.PHYSICAL:
+				modelSelected = JdtModel.PHYSICAL;
 				realCache.setSelection(true);
 				break;
-			case PHYSICAL_GC:
-				modelSelected = PHYSICAL_GC;
+			case JdtModel.PHYSICAL_GC:
+				modelSelected = JdtModel.PHYSICAL_GC;
 				realCacheGC.setSelection(true);
 				break;
 			default:
-				modelSelected = VIRTUAL;
+				modelSelected = JdtModel.VIRTUAL;
 				virtualCache.setSelection(true);
 				break;
 			}
 		} else {
-			modelSelected = VIRTUAL;
+			modelSelected = JdtModel.VIRTUAL;
 			virtualCache.setSelection(true);
 		}
 
 		// binding switch
-		String bindingStr = properties.getProperty(RESOLVE_BINDINGS);
+		String bindingStr = properties.getProperty(JdtModel.PROPERTY_RESOLVE_BINDINGS);
 		if (bindingStr != "") {
 			boolean bindingTemp = Boolean.parseBoolean(bindingStr);
 			if (bindingTemp == true) {
@@ -239,9 +231,9 @@ public class JdtModelConfigurationDialog extends AbstractModelConfigurationDialo
 			else
 				projectStr = projectStr + "," + str;
 		}
-		super.properties.put(PROJECTS, projectStr);
-		super.properties.put(CACHING_STRATEGY, modelSelected);
-		super.properties.put(RESOLVE_BINDINGS, bindingFlag);
+		super.properties.put(JdtModel.PROPERTY_PROJECTS, projectStr);
+		super.properties.put(JdtModel.PROPERTY_CACHING_STRATEGY, modelSelected);
+		super.properties.put(JdtModel.PROPERTY_RESOLVE_BINDINGS, bindingFlag);
 	}
 
 	// Lister for model selection buttons

@@ -29,11 +29,17 @@ import org.eclipse.jdt.core.dom.ASTNode;
  * 
  */
 public class JdtModel extends Model {
-	private List<String> supportedTypes = Arrays.asList("JavaProject",
-			"Package");
+	private List<String> supportedTypes = Arrays.asList("JavaProject", "Package");
 	private List<IJavaProject> javaProjects = new ArrayList<IJavaProject>();
 	private ASTReflection astModel;
 
+	public static final String PROPERTY_PROJECTS = "projects selected";
+	public static final String PROPERTY_CACHING_STRATEGY = "model selected";
+	public static final String PROPERTY_RESOLVE_BINDINGS = "resolve bindings";
+	public static final int VIRTUAL = 0; // virtual storage approach
+	public static final int PHYSICAL = 1; // real storage approach
+	public static final int PHYSICAL_GC = 2; // real storage with garbage
+	
 	@Override
 	public void load() throws EolModelLoadingException {
 
@@ -43,7 +49,7 @@ public class JdtModel extends Model {
 	public void load(StringProperties properties, IRelativePathResolver resolver)
 			throws EolModelLoadingException {
 		super.load(properties, resolver);
-		String projects = properties.getProperty(JdtModelConfig.PROJECTS);
+		String projects = properties.getProperty(JdtModel.PROPERTY_PROJECTS);
 		String[] projectsSelected = null;
 		if (projects.length() != 0) {
 			projectsSelected = projects.split(",");
@@ -51,19 +57,19 @@ public class JdtModel extends Model {
 		getJavaProjects(projectsSelected);
 
 		boolean resolveBindings = Boolean.parseBoolean(properties
-				.getProperty(JdtModelConfig.RESOLVE_BINDINGS));
+				.getProperty(JdtModel.PROPERTY_RESOLVE_BINDINGS));
 
 		try {
-			int cachingStrategy = Integer.parseInt(properties.getProperty(JdtModelConfig.CACHING_STRATEGY));
+			int cachingStrategy = Integer.parseInt(properties.getProperty(JdtModel.PROPERTY_CACHING_STRATEGY));
 
 			switch (cachingStrategy) {
-			case JdtModelConfig.VIRTUAL:
+			case JdtModel.VIRTUAL:
 				astModel = new ReflectiveASTVisitor(javaProjects, resolveBindings);
 				break;
-			case JdtModelConfig.PHYSICAL:
+			case JdtModel.PHYSICAL:
 				astModel = new ASTModel(javaProjects, resolveBindings);
 				break;
-			case JdtModelConfig.PHYSICAL_GC:
+			case JdtModel.PHYSICAL_GC:
 				// TODO
 				astModel = new ASTModel(javaProjects, resolveBindings);
 				break;
