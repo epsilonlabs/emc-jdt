@@ -14,34 +14,34 @@ import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 
-public class ReflectiveASTVisitor extends ASTVisitor implements ASTReflection {
+public class ReflectiveASTVisitor extends ASTVisitor {
 	protected List<Object> all = null;
 	protected String type = null;
 	protected boolean ofTypeOnly = false;
 	protected Collection<IJavaProject> projects = null;
-	protected boolean ifBindings = false;
+	protected boolean resolveBindings = false;
 
-	public ReflectiveASTVisitor(Collection<IJavaProject> projects,
-			boolean ifBindings) throws JavaModelException {
+	public ReflectiveASTVisitor(Collection<IJavaProject> projects, boolean ifBindings) {
 		this.projects = projects;
-		this.ifBindings = ifBindings;
+		this.resolveBindings = ifBindings;
 	}
 
 	private Collection<?> getAll(String type) throws JavaModelException {
 		all = new ArrayList<Object>();
 		this.type = type;
-
+		ASTParser parser = ASTParser.newParser(AST.JLS8);
+		parser.setKind(ASTParser.K_COMPILATION_UNIT);
+		// a switch for turning on/off resolve bindings
+		parser.setResolveBindings(resolveBindings);
+		
 		for (IJavaProject project : projects) {
 			for (IPackageFragment packageFragment : project
 					.getPackageFragments()) {
 				if (packageFragment.getKind() == IPackageFragmentRoot.K_SOURCE) {
 					for (ICompilationUnit compilationUnit : packageFragment
 							.getCompilationUnits()) {
-						ASTParser parser = ASTParser.newParser(AST.JLS4);
-						parser.setKind(ASTParser.K_COMPILATION_UNIT);
+						
 						parser.setSource(compilationUnit);
-						// a switch for turning on/off resolve bindings
-						parser.setResolveBindings(ifBindings);
 						parser.createAST(null).accept(this);
 					}
 				}
