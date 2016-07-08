@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.epsilon.common.util.StringProperties;
 import org.eclipse.epsilon.eol.exceptions.EolRuntimeException;
@@ -18,7 +17,6 @@ import org.eclipse.epsilon.eol.models.CachedModel;
 import org.eclipse.epsilon.eol.models.IRelativePathResolver;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.ASTNode;
 
@@ -29,13 +27,8 @@ public class JdtModel extends CachedModel<Object> {
 	protected boolean resolveBindings = false;
 	protected List<IJavaProject> projects = new ArrayList<IJavaProject>();
 	
-	public static final String PROPERTY_PROJECTS = "projects selected";
-	//public static final String PROPERTY_CACHING_STRATEGY = "model selected";
-	public static final String PROPERTY_RESOLVE_BINDINGS = "resolve bindings";
-//	public static final int VIRTUAL = 0; // virtual storage approach
-//	public static final int PHYSICAL = 1; // real storage approach
-//	public static final int PHYSICAL_GC = 2; // real storage with garbage
-	
+	public static final String PROPERTY_PROJECTS = "projects";
+	public static final String PROPERTY_RESOLVE_BINDINGS = "resolveBindings";
 	
 	@Override
 	public Object getEnumerationValue(String enumeration, String label)
@@ -133,12 +126,11 @@ public class JdtModel extends CachedModel<Object> {
 		
 		String[] projectNames = properties.getProperty(JdtModel.PROPERTY_PROJECTS, "").split(",");
 		try {
-			projects =  JdtReader.getIJavaProjects(JdtReader.getIProjects(projectNames));
+			projects =  JdtUtil.getIJavaProjects(JdtUtil.getIProjects(projectNames));
 		} catch (CoreException e) {
 			throw new EolModelLoadingException(e, this);
 		}
-		resolveBindings = Boolean.parseBoolean(properties
-				.getProperty(JdtModel.PROPERTY_RESOLVE_BINDINGS));
+		resolveBindings = Boolean.parseBoolean(properties.getProperty(JdtModel.PROPERTY_RESOLVE_BINDINGS));
 		visitor = new ReflectiveASTVisitor(projects, resolveBindings);
 		
 		loadModel();

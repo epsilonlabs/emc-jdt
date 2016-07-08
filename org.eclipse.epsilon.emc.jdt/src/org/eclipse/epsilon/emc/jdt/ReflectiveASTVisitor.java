@@ -20,27 +20,33 @@ public class ReflectiveASTVisitor extends ASTVisitor {
 	protected boolean ofTypeOnly = false;
 	protected Collection<IJavaProject> projects = null;
 	protected boolean resolveBindings = false;
-
+	protected ASTParser parser = null;
+	
 	public ReflectiveASTVisitor(Collection<IJavaProject> projects, boolean ifBindings) {
 		this.projects = projects;
 		this.resolveBindings = ifBindings;
 	}
 
+	protected ASTParser getASTParser() {
+		if (parser == null) {
+			parser = ASTParser.newParser(AST.JLS8);
+			parser.setKind(ASTParser.K_COMPILATION_UNIT);
+			parser.setResolveBindings(resolveBindings);
+		}
+		return parser;
+	}
+	
 	private Collection<?> getAll(String type) throws JavaModelException {
 		all = new ArrayList<Object>();
 		this.type = type;
-		ASTParser parser = ASTParser.newParser(AST.JLS8);
-		parser.setKind(ASTParser.K_COMPILATION_UNIT);
-		// a switch for turning on/off resolve bindings
-		parser.setResolveBindings(resolveBindings);
 		
 		for (IJavaProject project : projects) {
-			for (IPackageFragment packageFragment : project
-					.getPackageFragments()) {
+			for (IPackageFragment packageFragment : project.getPackageFragments()) {
 				if (packageFragment.getKind() == IPackageFragmentRoot.K_SOURCE) {
 					for (ICompilationUnit compilationUnit : packageFragment
 							.getCompilationUnits()) {
 						
+						ASTParser parser = getASTParser();
 						parser.setSource(compilationUnit);
 						parser.createAST(null).accept(this);
 					}

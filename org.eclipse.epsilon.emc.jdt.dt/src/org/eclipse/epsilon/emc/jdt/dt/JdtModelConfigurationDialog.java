@@ -6,7 +6,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.epsilon.common.dt.launching.dialogs.AbstractCachedModelConfigurationDialog;
 import org.eclipse.epsilon.emc.jdt.JdtModel;
-import org.eclipse.epsilon.emc.jdt.JdtReader;
+import org.eclipse.epsilon.emc.jdt.JdtUtil;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -120,10 +120,10 @@ public class JdtModelConfigurationDialog extends AbstractCachedModelConfiguratio
 	}
 
 	private java.util.List<IJavaProject> getJavaProjects() {
-		java.util.List<IProject> projects = JdtReader.getIProjects();
+		java.util.List<IProject> projects = JdtUtil.getIProjects();
 		try {
 			// get all java projects
-			return JdtReader.getIJavaProjects(projects);
+			return JdtUtil.getIJavaProjects(projects);
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}
