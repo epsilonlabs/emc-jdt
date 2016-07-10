@@ -13,6 +13,7 @@ import org.eclipse.epsilon.eol.exceptions.models.EolEnumerationValueNotFoundExce
 import org.eclipse.epsilon.eol.exceptions.models.EolModelElementTypeNotFoundException;
 import org.eclipse.epsilon.eol.exceptions.models.EolModelLoadingException;
 import org.eclipse.epsilon.eol.exceptions.models.EolNotInstantiableModelElementTypeException;
+import org.eclipse.epsilon.eol.execute.introspection.IPropertyGetter;
 import org.eclipse.epsilon.eol.models.CachedModel;
 import org.eclipse.epsilon.eol.models.IRelativePathResolver;
 import org.eclipse.jdt.core.IJavaElement;
@@ -26,6 +27,7 @@ public class JdtModel extends CachedModel<Object> {
 	protected ReflectiveASTVisitor visitor = null;
 	protected boolean resolveBindings = false;
 	protected List<IJavaProject> projects = new ArrayList<IJavaProject>();
+	protected JdtPropertyGetter propertyGetter = new JdtPropertyGetter();
 	
 	public static final String PROPERTY_PROJECTS = "projects";
 	public static final String PROPERTY_RESOLVE_BINDINGS = "resolveBindings";
@@ -155,6 +157,18 @@ public class JdtModel extends CachedModel<Object> {
 	}
 
 	@Override
+	public boolean isOfKind(Object instance, String metaClass)
+			throws EolModelElementTypeNotFoundException {
+		return getAllTypeNamesOf(instance).contains(metaClass);
+	}
+	
+	@Override
+	public boolean isOfType(Object instance, String metaClass)
+			throws EolModelElementTypeNotFoundException {
+		return instance.getClass().getSimpleName().equals(metaClass);
+	}
+	
+	@Override
 	protected Collection<String> getAllTypeNamesOf(Object instance) {
 		
 		Class<?> c = instance.getClass();
@@ -165,6 +179,11 @@ public class JdtModel extends CachedModel<Object> {
 		}
 		return allTypeNames;
 		
+	}
+	
+	@Override
+	public IPropertyGetter getPropertyGetter() {
+		return propertyGetter;
 	}
 
 }
