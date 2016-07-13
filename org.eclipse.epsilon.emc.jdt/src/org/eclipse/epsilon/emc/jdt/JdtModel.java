@@ -71,7 +71,18 @@ public class JdtModel extends CachedModel<Object> {
 	public boolean isInstantiable(String type) {
 		return false;
 	}
-
+	
+	@Override
+	public Collection<Object> getAllOfType(String type)
+			throws EolModelElementTypeNotFoundException {
+		
+		if ("TypeDeclaration".equals(type)) {
+			return new SearchableList<Object>(projects.toArray(new IJavaProject[]{}));
+		}
+		
+		return super.getAllOfType(type);
+	}
+	
 	@Override
 	public boolean hasType(String type) {
 		try {
@@ -185,5 +196,5 @@ public class JdtModel extends CachedModel<Object> {
 	public IPropertyGetter getPropertyGetter() {
 		return propertyGetter;
 	}
-
+	
 }
