@@ -1,6 +1,9 @@
 package org.eclipse.epsilon.emc.jdt;
 
+import java.util.AbstractCollection;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.core.resources.IResource;
@@ -36,8 +39,12 @@ import org.eclipse.jdt.internal.core.BinaryType;
 import org.eclipse.jdt.internal.core.BinaryTypeConverter;
 import org.eclipse.jdt.internal.core.SourceType;
 
+/**
+ * Variant of <code>TypeDeclaration.all</code> that integrates case sensitive
+ * pattern matching into its <code>.select(td|pattern='...')</code> method.
+ */
 @SuppressWarnings("restriction")
-public class SearchableList<T> extends ArrayList<T> implements IAbstractOperationContributor {
+public class SearchableTypeCollection extends AbstractCollection<Object> implements IAbstractOperationContributor {
 
 	private static final long serialVersionUID = 1L;
 
@@ -47,7 +54,7 @@ public class SearchableList<T> extends ArrayList<T> implements IAbstractOperatio
 				NameExpression operationNameExpression, List<Parameter> iterators,
 				List<Expression> expressions, IEolContext context)
 				throws EolRuntimeException {
-			
+
 			EqualsOperatorExpression equalsOperatorExpression = (EqualsOperatorExpression) expressions.get(0);
 
 			SearchPattern pattern = SearchPattern.createPattern(
@@ -79,7 +86,7 @@ public class SearchableList<T> extends ArrayList<T> implements IAbstractOperatio
 
 									if (type instanceof SourceType) {
 										convertSourceType(results, (SourceType) match.getElement(), problemReporter, compilationResult);
-									} else if (match.getElement() instanceof BinaryType) {
+									} else if (type instanceof BinaryType) {
 										convertBinaryType(results, type, problemReporter, compilationResult);
 									}
 								}
@@ -120,9 +127,13 @@ public class SearchableList<T> extends ArrayList<T> implements IAbstractOperatio
 	}
 
 	protected IJavaProject[] javaProjects = null;
+
+	/** The visitor is only used if the script tries to iterate through the entire TypeDeclaration.all list. */
+	protected ReflectiveASTVisitor visitor;
 	
-	public SearchableList(IJavaProject[] javaProjects) {
+	public SearchableTypeCollection(IJavaProject[] javaProjects, ReflectiveASTVisitor visitor) {
 		this.javaProjects = javaProjects;
+		this.visitor = visitor;
 	}
 	
 	@Override
@@ -132,6 +143,29 @@ public class SearchableList<T> extends ArrayList<T> implements IAbstractOperatio
 		}
 		
 		return null;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public Iterator<Object> iterator() {
+		try {
+			return (Iterator<Object>) getAllTypes().iterator();
+		} catch (JavaModelException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private Collection<?> getAllTypes() throws JavaModelException {
+		return visitor.getAllOfType(TypeDeclaration.class.getSimpleName());
+	}
+
+	@Override
+	public int size() {
+		try {
+			return getAllTypes().size();
+		} catch (JavaModelException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }

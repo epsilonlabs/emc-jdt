@@ -20,6 +20,7 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.TypeDeclaration;
 
 public class JdtModel extends CachedModel<Object> {
 
@@ -72,17 +73,28 @@ public class JdtModel extends CachedModel<Object> {
 		return false;
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public Collection<Object> getAllOfType(String type)
 			throws EolModelElementTypeNotFoundException {
-		
-		if ("TypeDeclaration".equals(type)) {
-			return new SearchableList<Object>(projects.toArray(new IJavaProject[]{}));
+		if (TypeDeclaration.class.getSimpleName().equals(type)) {
+			// disable caching for TypeDeclaration - we want to always return a searchable collection
+			return (Collection<Object>) getAllOfTypeFromModel(type);
 		}
-		
 		return super.getAllOfType(type);
 	}
 	
+	@SuppressWarnings("unchecked")
+	@Override
+	public Collection<Object> getAllOfKind(String type)
+			throws EolModelElementTypeNotFoundException {
+		if (TypeDeclaration.class.getSimpleName().equals(type)) {
+			// disable caching for TypeDeclaration - we want to always return a searchable collection
+			return (Collection<Object>) getAllOfKindFromModel(type);
+		}
+		return super.getAllOfType(type);
+	}
+
 	@Override
 	public boolean hasType(String type) {
 		try {
@@ -113,6 +125,9 @@ public class JdtModel extends CachedModel<Object> {
 	protected Collection<? extends Object> getAllOfTypeFromModel(String type)
 			throws EolModelElementTypeNotFoundException {
 		try {
+			if (TypeDeclaration.class.getSimpleName().equals(type)) {
+				return new SearchableTypeCollection(projects.toArray(new IJavaProject[]{}), visitor);
+			}
 			return visitor.getAllOfType(type);
 		} catch (JavaModelException e) {
 			throw new RuntimeException(e);
