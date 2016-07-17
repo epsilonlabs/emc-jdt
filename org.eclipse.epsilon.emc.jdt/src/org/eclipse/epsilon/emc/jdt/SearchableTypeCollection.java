@@ -11,6 +11,7 @@ import org.eclipse.epsilon.eol.dom.EqualsOperatorExpression;
 import org.eclipse.epsilon.eol.dom.Expression;
 import org.eclipse.epsilon.eol.dom.NameExpression;
 import org.eclipse.epsilon.eol.dom.Parameter;
+import org.eclipse.epsilon.eol.dom.PropertyCallExpression;
 import org.eclipse.epsilon.eol.exceptions.EolRuntimeException;
 import org.eclipse.epsilon.eol.execute.context.IEolContext;
 import org.eclipse.epsilon.eol.execute.operations.AbstractOperation;
@@ -39,11 +40,34 @@ import org.eclipse.jdt.internal.core.SourceType;
 @SuppressWarnings("restriction")
 public class SearchableTypeCollection extends AbstractCollection<Object> implements IAbstractOperationContributor {
 
-	private final class SelectSearchParticipant extends SelectOperation {
+	private final class SelectSearchParticipant extends AbstractOperation {
+		
+		protected boolean appliesTo(Parameter iterator, Expression condition) {
+			if (condition instanceof EqualsOperatorExpression) {
+				EqualsOperatorExpression equalsOperatorExpression = (EqualsOperatorExpression) condition;
+				if (equalsOperatorExpression.getFirstOperand() instanceof PropertyCallExpression) {
+					PropertyCallExpression propertyCallExpression = (PropertyCallExpression) equalsOperatorExpression.getFirstOperand();
+					if (propertyCallExpression.getTargetExpression() instanceof NameExpression) {
+						NameExpression nameExpression = (NameExpression) propertyCallExpression.getTargetExpression();
+						if (nameExpression.getName().equals(iterator.getName()) && propertyCallExpression.getPropertyNameExpression().getName().equals("name")) {
+							return true;
+						}
+					}
+				}
+			}
+			return false;
+		}
+		
 		@Override
-		public Object execute(Object target, NameExpression operationNameExpression, List<Parameter> iterators,
-				List<Expression> expressions, IEolContext context) throws EolRuntimeException {
-
+		public Object execute(Object target,
+				NameExpression operationNameExpression, List<Parameter> iterators,
+				List<Expression> expressions, IEolContext context)
+				throws EolRuntimeException {
+			
+			if (!appliesTo(iterators.get(0), expressions.get(0))) return new SelectOperation().execute(target, operationNameExpression, iterators, expressions, context);
+			
+			System.out.println("Yay!");
+			
 			EqualsOperatorExpression equalsOperatorExpression = (EqualsOperatorExpression) expressions.get(0);
 
 			SearchPattern pattern = SearchPattern
