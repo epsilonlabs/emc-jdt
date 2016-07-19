@@ -66,7 +66,7 @@ public class SearchableTypeCollection extends AbstractCollection<Object> impleme
 			
 			if (!appliesTo(iterators.get(0), expressions.get(0))) return new SelectOperation().execute(target, operationNameExpression, iterators, expressions, context);
 			
-			System.out.println("Yay!");
+			//System.out.println("Yay!");
 			
 			EqualsOperatorExpression equalsOperatorExpression = (EqualsOperatorExpression) expressions.get(0);
 
