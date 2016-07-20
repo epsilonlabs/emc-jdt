@@ -40,95 +40,122 @@ import org.eclipse.jdt.internal.core.SourceType;
 @SuppressWarnings("restriction")
 public class SearchableTypeCollection extends AbstractCollection<Object> implements IAbstractOperationContributor {
 
-	private final class SelectSearchParticipant extends AbstractOperation {
-		
-		protected boolean appliesTo(Parameter iterator, Expression condition) {
-			if (condition instanceof EqualsOperatorExpression) {
-				EqualsOperatorExpression equalsOperatorExpression = (EqualsOperatorExpression) condition;
-				if (equalsOperatorExpression.getFirstOperand() instanceof PropertyCallExpression) {
-					PropertyCallExpression propertyCallExpression = (PropertyCallExpression) equalsOperatorExpression.getFirstOperand();
-					if (propertyCallExpression.getTargetExpression() instanceof NameExpression) {
-						NameExpression nameExpression = (NameExpression) propertyCallExpression.getTargetExpression();
-						if (nameExpression.getName().equals(iterator.getName()) && propertyCallExpression.getPropertyNameExpression().getName().equals("name")) {
-							return true;
-						}
+	protected boolean isSearchByName(Parameter iterator, Expression condition) {
+		if (condition instanceof EqualsOperatorExpression) {
+			EqualsOperatorExpression equalsOperatorExpression = (EqualsOperatorExpression) condition;
+			if (equalsOperatorExpression.getFirstOperand() instanceof PropertyCallExpression) {
+				PropertyCallExpression propertyCallExpression = (PropertyCallExpression) equalsOperatorExpression
+						.getFirstOperand();
+				if (propertyCallExpression.getTargetExpression() instanceof NameExpression) {
+					NameExpression nameExpression = (NameExpression) propertyCallExpression.getTargetExpression();
+					if (nameExpression.getName().equals(iterator.getName())
+							&& propertyCallExpression.getPropertyNameExpression().getName().equals("name")) {
+						return true;
 					}
 				}
 			}
-			return false;
 		}
-		
+		return false;
+	}
+
+	protected Object performSearch(IEolContext context, final Expression nameExpression, final List<Object> results,
+			final SearchRequestor requestor) throws EolRuntimeException {
+		SearchPattern pattern = SearchPattern.createPattern(
+				context.getExecutorFactory().executeAST(nameExpression, context) + "", IJavaSearchConstants.TYPE,
+				IJavaSearchConstants.DECLARATIONS, SearchPattern.R_PATTERN_MATCH | SearchPattern.R_CASE_SENSITIVE);
+
+		IJavaSearchScope scope = SearchEngine.createJavaSearchScope(javaProjects, IJavaSearchScope.SOURCES);
+
+		SearchEngine engine = new SearchEngine();
+		try {
+			engine.search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() }, scope,
+					requestor, null);
+			return results;
+		} catch (Exception ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+
+	private final class SelectSearchParticipant extends AbstractOperation {
 		@Override
-		public Object execute(Object target,
-				NameExpression operationNameExpression, List<Parameter> iterators,
-				List<Expression> expressions, IEolContext context)
-				throws EolRuntimeException {
-			
-			if (!appliesTo(iterators.get(0), expressions.get(0))) return new SelectOperation().execute(target, operationNameExpression, iterators, expressions, context);
-			
-			//System.out.println("Yay!");
-			
-			EqualsOperatorExpression equalsOperatorExpression = (EqualsOperatorExpression) expressions.get(0);
+		public Object execute(Object target, NameExpression operationNameExpression, List<Parameter> iterators,
+				List<Expression> expressions, IEolContext context) throws EolRuntimeException {
 
-			SearchPattern pattern = SearchPattern
-					.createPattern(
-							context.getExecutorFactory().executeAST(equalsOperatorExpression.getSecondOperand(),
-									context) + "",
-							IJavaSearchConstants.TYPE, IJavaSearchConstants.DECLARATIONS,
-							SearchPattern.R_PATTERN_MATCH | SearchPattern.R_CASE_SENSITIVE);
-
-			IJavaSearchScope scope = SearchEngine.createJavaSearchScope(javaProjects, IJavaSearchScope.SOURCES);
-
-			SearchEngine engine = new SearchEngine();
-			try {
-				final List<Object> results = new ArrayList<Object>();
-				engine.search(pattern, new SearchParticipant[] { SearchEngine.getDefaultSearchParticipant() }, scope,
-						new SearchRequestor() {
-
-							@Override
-							public void acceptSearchMatch(SearchMatch match) throws CoreException {
-								/*
-								 * Note: DOM nodes and internal nodes seem to be
-								 * created through different processes, but we
-								 * have the ICompilationUnit in common.
-								 */
-								if (match.getElement() instanceof SourceType) {
-									final SourceType srcType = (SourceType) match.getElement();
-
-									/*
-									 * TODO: so far, it seems we need to parse
-									 * the file.
-									 *
-									 * TODO: take into account nested types /
-									 * package names (how to get fully qualified
-									 * name from DOM node?)
-									 */
-
-									ASTParser parser = ASTParser.newParser(AST.JLS8);
-									parser.setKind(ASTParser.K_COMPILATION_UNIT);
-									parser.setResolveBindings(true);
-									parser.setSource(srcType.getCompilationUnit());
-
-									ASTNode domAST = parser.createAST(null);
-									domAST.accept(new ASTVisitor() {
-										@Override
-										public boolean visit(org.eclipse.jdt.core.dom.TypeDeclaration node) {
-											final String domName = node.getName().getIdentifier();
-											if (domName.equals(srcType.getElementName())) {
-												results.add(node);
-											}
-											return true;
-										}
-									});
-								} else {
-									results.add(match.getElement());
-								}
-							}
-						}, null);
-				return results;
-			} catch (Exception ex) {
-				throw new RuntimeException(ex);
+			if (!isSearchByName(iterators.get(0), expressions.get(0))) {
+				return new SelectOperation().execute(target, operationNameExpression, iterators, expressions, context);
 			}
+			final EqualsOperatorExpression equalsOperatorExpression = (EqualsOperatorExpression) expressions.get(0);
+			final Expression nameExpression = equalsOperatorExpression.getSecondOperand();
+
+			final List<Object> results = new ArrayList<Object>();
+			final SearchRequestor requestor = new SearchRequestor() {
+
+				@Override
+				public void acceptSearchMatch(SearchMatch match) throws CoreException {
+					/*
+					 * Note: DOM nodes and internal nodes seem to be created
+					 * through different processes, but we have the
+					 * ICompilationUnit in common.
+					 */
+					if (match.getElement() instanceof SourceType) {
+						final SourceType srcType = (SourceType) match.getElement();
+
+						/*
+						 * TODO: so far, it seems we need to parse the file.
+						 *
+						 * TODO: take into account nested types / package names
+						 * (how to get fully qualified name from DOM node?)
+						 */
+
+						ASTParser parser = ASTParser.newParser(AST.JLS8);
+						parser.setKind(ASTParser.K_COMPILATION_UNIT);
+						parser.setResolveBindings(true);
+						parser.setSource(srcType.getCompilationUnit());
+
+						ASTNode domAST = parser.createAST(null);
+						domAST.accept(new ASTVisitor() {
+							@Override
+							public boolean visit(org.eclipse.jdt.core.dom.TypeDeclaration node) {
+								final String domName = node.getName().getIdentifier();
+								if (domName.equals(srcType.getElementName())) {
+									results.add(node);
+								}
+								return true;
+							}
+						});
+					} else {
+						results.add(match.getElement());
+					}
+				}
+			};
+
+			return performSearch(context, nameExpression, results, requestor);
+		}
+	}
+
+	/**
+	 * More performant but less convenient version of the .select, which does
+	 * not reparse and therefore returns raw search results.
+	 */
+	private final class SearchOperation extends AbstractOperation {
+		@Override
+		public Object execute(Object target, NameExpression operationNameExpression, List<Parameter> iterators,
+				List<Expression> expressions, IEolContext context) throws EolRuntimeException {
+			if (!isSearchByName(iterators.get(0), expressions.get(0))) {
+				return new SelectOperation().execute(target, operationNameExpression, iterators, expressions, context);
+			}
+			final EqualsOperatorExpression equalsOperatorExpression = (EqualsOperatorExpression) expressions.get(0);
+			final Expression nameExpression = equalsOperatorExpression.getSecondOperand();
+
+			final List<Object> results = new ArrayList<Object>();
+			final SearchRequestor requestor = new SearchRequestor() {
+				@Override
+				public void acceptSearchMatch(SearchMatch match) throws CoreException {
+					results.add(match.getElement());
+				}
+			};
+
+			return performSearch(context, nameExpression, results, requestor);
 		}
 	}
 
@@ -149,9 +176,11 @@ public class SearchableTypeCollection extends AbstractCollection<Object> impleme
 	public AbstractOperation getAbstractOperation(String name) {
 		if ("select".equals(name)) {
 			return new SelectSearchParticipant();
+		} else if ("search".equals(name)) {
+			return new SearchOperation();
+		} else {
+			return null;
 		}
-
-		return null;
 	}
 
 	@SuppressWarnings("unchecked")
