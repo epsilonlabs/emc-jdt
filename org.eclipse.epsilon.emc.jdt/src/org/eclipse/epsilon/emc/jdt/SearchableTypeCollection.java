@@ -22,7 +22,7 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
-import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.search.IJavaSearchConstants;
 import org.eclipse.jdt.core.search.IJavaSearchScope;
 import org.eclipse.jdt.core.search.SearchEngine;
@@ -32,6 +32,7 @@ import org.eclipse.jdt.core.search.SearchPattern;
 import org.eclipse.jdt.core.search.SearchRequestor;
 import org.eclipse.jdt.internal.compiler.ast.TypeDeclaration;
 import org.eclipse.jdt.internal.core.SourceType;
+import org.eclipse.jdt.internal.corext.refactoring.structure.ASTNodeSearchUtil;
 
 /**
  * Variant of <code>TypeDeclaration.all</code> that integrates case sensitive
@@ -112,17 +113,18 @@ public class SearchableTypeCollection extends AbstractCollection<Object> impleme
 						parser.setResolveBindings(true);
 						parser.setSource(srcType.getCompilationUnit());
 
-						ASTNode domAST = parser.createAST(null);
-						domAST.accept(new ASTVisitor() {
-							@Override
-							public boolean visit(org.eclipse.jdt.core.dom.TypeDeclaration node) {
-								final String domName = node.getName().getIdentifier();
-								if (domName.equals(srcType.getElementName())) {
-									results.add(node);
-								}
-								return true;
-							}
-						});
+						/*
+						 * Suggestion from Eclipse forum -
+						 * https://www.eclipse.org/forums/index.php?t=rview&goto
+						 * =1738534#msg_1738534.
+						 *
+						 * TODO: discuss jdt.ui dependency with Dimitris.
+						 */
+						CompilationUnit domAST = (CompilationUnit) parser.createAST(null);
+						ASTNode astNode = ASTNodeSearchUtil.getAstNode(match, domAST);
+
+						org.eclipse.jdt.core.dom.TypeDeclaration td = (org.eclipse.jdt.core.dom.TypeDeclaration) astNode.getParent();
+						results.add(td);
 					} else {
 						results.add(match.getElement());
 					}

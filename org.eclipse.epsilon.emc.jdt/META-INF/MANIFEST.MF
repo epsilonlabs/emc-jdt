@@ -10,7 +10,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jface.text,
  org.eclipse.epsilon.common.dt,
  org.eclipse.jdt;visibility:=reexport,
- org.eclipse.jdt.core;visibility:=reexport
+ org.eclipse.jdt.core;visibility:=reexport,
+ org.eclipse.jdt.ui
 Bundle-ActivationPolicy: lazy
 Import-Package: org.eclipse.epsilon.eol.exceptions
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
