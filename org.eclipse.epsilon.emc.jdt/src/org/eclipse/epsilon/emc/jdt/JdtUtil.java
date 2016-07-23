@@ -51,8 +51,7 @@ public class JdtUtil {
 			throws CoreException {
 		IJavaProject javaProject;
 		// the project should be a open Java project
-		if (project.isNatureEnabled("org.eclipse.jdt.core.javanature")
-				&& project.isOpen()) {
+		if (project.isOpen() && project.isNatureEnabled("org.eclipse.jdt.core.javanature")) {
 			javaProject = JavaCore.create(project);
 			return javaProject;
 		}
