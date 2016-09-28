@@ -36,7 +36,7 @@ public class ReflectiveASTVisitor extends ASTVisitor {
 		return parser;
 	}
 	
-	private Collection<?> getAll(String type) throws JavaModelException {
+	private Collection<Object> getAll(String type) throws JavaModelException {
 		all = new ArrayList<Object>();
 		this.type = type;
 		
@@ -56,12 +56,12 @@ public class ReflectiveASTVisitor extends ASTVisitor {
 		return all;
 	}
 
-	public Collection<?> getAllOfKind(String type) throws JavaModelException {
+	public Collection<Object> getAllOfKind(String type) throws JavaModelException {
 		this.ofTypeOnly = false;
 		return getAll(type);
 	}
 
-	public Collection<?> getAllOfType(String type) throws JavaModelException {
+	public Collection<Object> getAllOfType(String type) throws JavaModelException {
 		this.ofTypeOnly = true;
 		return getAll(type);
 	}

@@ -116,13 +116,13 @@ public class JdtModel extends CachedModel<Object> {
 	}
 
 	@Override
-	protected Collection<? extends Object> allContentsFromModel() {
+	protected Collection<Object> allContentsFromModel() {
 		// TODO Auto-generated method stub
 		return Collections.emptyList();
 	}
 
 	@Override
-	protected Collection<? extends Object> getAllOfTypeFromModel(String type)
+	protected Collection<Object> getAllOfTypeFromModel(String type)
 			throws EolModelElementTypeNotFoundException {
 		try {
 			if (TypeDeclaration.class.getSimpleName().equals(type)) {
@@ -135,7 +135,7 @@ public class JdtModel extends CachedModel<Object> {
 	}
 
 	@Override
-	protected Collection<? extends Object> getAllOfKindFromModel(String kind)
+	protected Collection<Object> getAllOfKindFromModel(String kind)
 			throws EolModelElementTypeNotFoundException {
 		return getAllOfTypeFromModel(kind);
 	}
