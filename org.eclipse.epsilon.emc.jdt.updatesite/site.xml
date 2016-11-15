@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/org.eclipse.epsilon.emc.jdt.dt.feature_1.0.0.qualifier.jar" id="org.eclipse.epsilon.emc.jdt.dt.feature" version="1.0.0.qualifier">
+      <category name="emc.jdt"/>
+   </feature>
+   <feature url="features/org.eclipse.epsilon.emc.jdt.feature_1.0.0.qualifier.jar" id="org.eclipse.epsilon.emc.jdt.feature" version="1.0.0.qualifier">
+      <category name="emc.jdt"/>
+   </feature>
+   <category-def name="emc.jdt" label="EMC JDT"/>
+</site>

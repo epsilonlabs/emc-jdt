@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?pde version="3.8"?><target name="targetplatform" sequenceNumber="1">
+<locations>
+<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+<unit id="org.eclipse.epsilon.core.feature.feature.group" version="1.4.0.201611012202"/>
+<unit id="org.eclipse.epsilon.core.dt.feature.feature.group" version="1.4.0.201611012202"/>
+<repository location="http://download.eclipse.org/epsilon/updates/"/>
+</location>
+<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+<unit id="org.eclipse.platform.feature.group" version="4.6.1.v20160907-1200"/>
+<unit id="org.eclipse.jdt.feature.group" version="3.12.1.v20160907-1200"/>
+<repository location="http://download.eclipse.org/releases/neon/"/>
+</location>
+</locations>
+</target>

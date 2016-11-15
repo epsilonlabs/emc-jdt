@@ -5,5 +5,5 @@ TypeDeclaration.all
 	.first.class.println('Class of the first TD: ');
 
 TypeDeclaration.all
-	.select(td|td.foo = 'IConsole')
-	.first.class.println('Found instances of IConsole: ');
+	.select(td|td.name = 'ChartColor')
+	.first.class.println('Found instances of ChartColor: ');
