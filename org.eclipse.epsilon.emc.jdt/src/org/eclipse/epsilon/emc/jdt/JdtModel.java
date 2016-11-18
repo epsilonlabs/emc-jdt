@@ -28,7 +28,7 @@ public class JdtModel extends CachedModel<Object> {
 	protected ReflectiveASTVisitor visitor = null;
 	protected boolean resolveBindings = false;
 	protected List<IJavaProject> projects = new ArrayList<IJavaProject>();
-	protected JdtPropertyGetter propertyGetter = new JdtPropertyGetter();
+	protected JdtPropertyGetter propertyGetter;
 	
 	public static final String PROPERTY_PROJECTS = "projects";
 	public static final String PROPERTY_RESOLVE_BINDINGS = "resolveBindings";
@@ -168,7 +168,9 @@ public class JdtModel extends CachedModel<Object> {
 	protected void loadModel() throws EolModelLoadingException {}
 
 	@Override
-	protected void disposeModel() {}
+	protected void disposeModel() {
+		propertyGetter = null;
+	}
 
 	@Override
 	protected boolean deleteElementInModel(Object instance)
@@ -209,7 +211,14 @@ public class JdtModel extends CachedModel<Object> {
 	
 	@Override
 	public IPropertyGetter getPropertyGetter() {
+		if (propertyGetter == null) {
+			// If the user wants bindings to be resolved, they won't
+			// want SimpleNames to be converted to Strings implicitly,
+			// since they'll lose the ability to check the bindings
+			// of the name and its type.
+			propertyGetter = new JdtPropertyGetter(resolveBindings);
+		}
 		return propertyGetter;
 	}
-	
+
 }

@@ -15,12 +15,14 @@ import org.eclipse.jdt.core.dom.SimpleName;
 public class JdtPropertyGetter extends JavaPropertyGetter {
 	
 	protected List<ObjectPropertyGetter> objectPropertyGetters = new ArrayList<ObjectPropertyGetter>();
-	
-	public JdtPropertyGetter() {
+	protected final boolean preserveNames;
+
+	public JdtPropertyGetter(boolean resolveBindings) {
 		objectPropertyGetters.addAll(Arrays.asList(new ObjectPropertyGetter[]{
 				new FieldDeclarationNameGetter(),
 				new BodyDeclarationModifierGetter()
 		}));
+		this.preserveNames = resolveBindings;
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -37,12 +39,13 @@ public class JdtPropertyGetter extends JavaPropertyGetter {
 			}
 		}
 		
-		if (result == null) result = super.invoke(object, property);
-		
-		if (result instanceof SimpleName) {
-			return result.toString();
+		if (result == null) {
+			result = super.invoke(object, property);
 		}
-		else {
+
+		if (!preserveNames && result instanceof SimpleName) {
+			return result.toString();
+		} else {
 			return result;
 		}
 	}
