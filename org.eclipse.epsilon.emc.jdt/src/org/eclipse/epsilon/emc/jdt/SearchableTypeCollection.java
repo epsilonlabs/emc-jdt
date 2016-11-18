@@ -14,6 +14,7 @@ import org.eclipse.epsilon.eol.dom.Parameter;
 import org.eclipse.epsilon.eol.dom.PropertyCallExpression;
 import org.eclipse.epsilon.eol.exceptions.EolRuntimeException;
 import org.eclipse.epsilon.eol.execute.context.IEolContext;
+import org.eclipse.epsilon.eol.execute.context.Variable;
 import org.eclipse.epsilon.eol.execute.operations.AbstractOperation;
 import org.eclipse.epsilon.eol.execute.operations.declarative.IAbstractOperationContributor;
 import org.eclipse.epsilon.eol.execute.operations.declarative.SelectOperation;
@@ -41,7 +42,7 @@ import org.eclipse.jdt.internal.corext.refactoring.structure.ASTNodeSearchUtil;
 @SuppressWarnings("restriction")
 public class SearchableTypeCollection extends AbstractCollection<Object> implements IAbstractOperationContributor {
 
-	protected boolean isSearchByName(Parameter iterator, Expression condition) {
+	protected boolean isSearchByName(String iteratorName, Expression condition) {
 		if (condition instanceof EqualsOperatorExpression) {
 			EqualsOperatorExpression equalsOperatorExpression = (EqualsOperatorExpression) condition;
 			if (equalsOperatorExpression.getFirstOperand() instanceof PropertyCallExpression) {
@@ -49,7 +50,7 @@ public class SearchableTypeCollection extends AbstractCollection<Object> impleme
 						.getFirstOperand();
 				if (propertyCallExpression.getTargetExpression() instanceof NameExpression) {
 					NameExpression nameExpression = (NameExpression) propertyCallExpression.getTargetExpression();
-					if (nameExpression.getName().equals(iterator.getName())
+					if (nameExpression.getName().equals(iteratorName)
 							&& propertyCallExpression.getPropertyNameExpression().getName().equals("name")) {
 						return true;
 					}
@@ -77,15 +78,16 @@ public class SearchableTypeCollection extends AbstractCollection<Object> impleme
 		}
 	}
 
-	private final class SelectSearchParticipant extends AbstractOperation {
-		@Override
-		public Object execute(Object target, NameExpression operationNameExpression, List<Parameter> iterators,
-				List<Expression> expressions, IEolContext context) throws EolRuntimeException {
+	private final class SelectSearchParticipant extends SelectOperation {
 
-			if (!isSearchByName(iterators.get(0), expressions.get(0))) {
-				return new SelectOperation().execute(target, operationNameExpression, iterators, expressions, context);
+		@Override
+		public Object execute(Object target, Variable iterator, Expression expression,
+				IEolContext context, boolean returnOnFirstMatch) throws EolRuntimeException {
+
+			if (!isSearchByName(iterator.getName(), expression)) {
+				return new SelectOperation().execute(target, iterator, expression, context, returnOnFirstMatch);
 			}
-			final EqualsOperatorExpression equalsOperatorExpression = (EqualsOperatorExpression) expressions.get(0);
+			final EqualsOperatorExpression equalsOperatorExpression = (EqualsOperatorExpression) expression;
 			final Expression nameExpression = equalsOperatorExpression.getSecondOperand();
 
 			final List<Object> results = new ArrayList<Object>();
@@ -143,7 +145,7 @@ public class SearchableTypeCollection extends AbstractCollection<Object> impleme
 		@Override
 		public Object execute(Object target, NameExpression operationNameExpression, List<Parameter> iterators,
 				List<Expression> expressions, IEolContext context) throws EolRuntimeException {
-			if (!isSearchByName(iterators.get(0), expressions.get(0))) {
+			if (!isSearchByName(iterators.get(0).getName(), expressions.get(0))) {
 				return new SelectOperation().execute(target, operationNameExpression, iterators, expressions, context);
 			}
 			final EqualsOperatorExpression equalsOperatorExpression = (EqualsOperatorExpression) expressions.get(0);
