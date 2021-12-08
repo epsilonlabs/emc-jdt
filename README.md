@@ -1,7 +1,3 @@
 # Epsilon driver for Java projects
 
-[![Travis status](https://api.travis-ci.org/epsilonlabs/emc-jdt.svg?branch=master)](https://travis-ci.org/epsilonlabs/emc-jdt)
-
-To install the plugins, use this update site:
-
-    http://epsilonlabs.github.io/emc-jdt/updates
+The JDT driver has graduated to the [main Epsilon Git repository](https://eclipse.org/epsilon/download) and its documentation has moved to the [Epsilon website](https://www.eclipse.org/epsilon/doc/articles/jdt/).
